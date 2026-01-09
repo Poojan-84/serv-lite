@@ -10,7 +10,7 @@ import struct
 class SERVTester:
     """Test interface for SERV RISC-V core on FPGA"""
     
-    def __init__(self, spi_id=0, baudrate=1000000, cs_pin=5):
+    def __init__(self, spi_id=0, baudrate=1000000, cs_pin=1):
         """
         Initialize SPI connection to FPGA
         
@@ -369,52 +369,6 @@ def reset_cpu():
     
     print("✓ CPU reset complete (16 NOPs loaded)")
 
-def debug_spi_read():
-    """Debug SPI read operation"""
-    print("\n=== SPI Read Debug Test ===")
-    
-    from machine import Pin, SPI
-    import time
-    
-    # Try different SPI speeds
-    speeds = [100000, 500000, 1000000, 2000000]
-    
-    for speed in speeds:
-        print(f"\nTesting at {speed} Hz:")
-        spi = SPI(0, baudrate=speed, polarity=0, phase=0, bits=8, firstbit=SPI.MSB)
-        cs = Pin(5, Pin.OUT)
-        cs.value(1)
-        
-        results = []
-        for i in range(5):
-            cs.value(0)
-            time.sleep_us(10)
-            data = spi.read(1)
-            cs.value(1)
-            time.sleep_us(100)
-            results.append(data[0])
-        
-        # Check if any reads returned 0xA5
-        success = 0
-        for val in results:
-            if val == 0xA5:
-                success += 1
-        
-        result_str = ' '.join([f'0x{val:02X}' for val in results])
-        print(f"  Results: {result_str}")
-        print(f"  Success: {success}/5")
-        
-        if success > 0:
-            print(f"  ✓ MISO working at {speed} Hz!")
-            break
-    else:
-        print("\n✗ MISO not responding at any speed")
-        print("  Possible issues:")
-        print("  1. MISO pin not connected")
-        print("  2. Wrong pin in FPGA constraints")
-        print("  3. Tri-state (miso_en) not working")
-        print("  4. SPI mode mismatch")
-
 
 # ============= Main Entry Point =============
 
@@ -425,10 +379,11 @@ if __name__ == "__main__":
     print("\n📋 Available Commands:")
     print("  quick_test()           - Quick SPI + Memory test")
     print("  full_test()            - Complete test suite (RECOMMENDED)")
-    print("  debug_spi_read()       - Debug SPI MISO issues")
     print("  load_program(list)     - Load custom program")
     print("  write_word(addr, data) - Write single 32-bit word")
     print("  hello_world()          - Load demo program")
     print("  reset_cpu()            - Reset CPU with NOPs")
     print("\n🚀 Recommended: Run full_test() to verify everything")
     print("="*60)
+
+
